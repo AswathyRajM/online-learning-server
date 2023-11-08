@@ -1,5 +1,6 @@
 import express from 'express';
 import CourseModel from '../models/Course.model.js';
+import { io } from '../index.js';
 const router = express.Router();
 
 // router.post('/', async (request, response) => {
@@ -31,44 +32,46 @@ router.get('/all', async (request, response) => {
 //   }
 // });
 
-// router.post('/search', async (request, response) => {
-//   const searchTerm = request.query.searchTerm;
-
-//   CourseModel.find(
-//   // Find documents matching any of these values
-//   {
-//     $or: [
-//       { name: { $in: ['foo', 'bar'] } },
-//       { instructor: { $in: ['foo', 'bar'] } },
-//     ],
-//   }
-// );
-
-//   CourseModel.findOneAndUpdate(courseId, { $set: update }, { new: true })
-//     .then(async (course) => {
-//       await course.save();
-//       response.send(course);
-//     })
-//     .catch((err) => {
-//       res.status(500).send(err);
-//     });
-// });
-
-router.patch('/update/:id', async (request, response) => {
-  const courseId = request.params.id;
-  const update = {};
-  for (const key of Object.keys(request.body)) {
-    if (req.body[key] !== '') {
-      update[key] = req.body[key];
-    }
-  }
-  CourseModel.findOneAndUpdate(courseId, { $set: update }, { new: true })
+router.get('/search', async (request, response) => {
+  const searchTerm = request.query.query;
+  CourseModel.find({
+    $or: [
+      { name: { $regex: searchTerm, $options: 'i' } }, // 'i' option for case-insensitive search
+      { instructor: { $regex: searchTerm, $options: 'i' } },
+    ],
+  })
     .then(async (course) => {
-      await course.save();
       response.send(course);
     })
     .catch((err) => {
-      res.status(500).send(err);
+      console.log(err);
+      response.status(500).send(err);
+    });
+});
+
+router.patch('/update/:id', async (request, response) => {
+  const _id = request.params.id;
+  const update = {};
+  for (const key of Object.keys(request.body)) {
+    if (request.body[key] !== '') {
+      update[key] = request.body[key];
+    }
+  }
+
+  CourseModel.findOneAndUpdate({ _id }, { $set: update }, { new: true })
+    .then(async (course) => {
+      await course.save();
+      if (request.body.likes)
+        io.on('connection', (socket) => {
+          socket.emit('course_liked', {
+            _id,
+            totalLike: course.likes,
+          });
+        });
+      response.send(course);
+    })
+    .catch((err) => {
+      response.status(500).send(err);
     });
 });
 

@@ -1,4 +1,4 @@
-import mongoose , {Schema} from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 const SyllabusSchema = new mongoose.Schema({
   week: {
@@ -53,7 +53,7 @@ const CourseSchema = new mongoose.Schema({
   syllabus: [SyllabusSchema],
   enrolledStudents: [{ type: Schema.Types.ObjectId, ref: 'student' }],
   likes: {
-    type: String,
+    type: Number,
     default: 0,
   },
   price: {
