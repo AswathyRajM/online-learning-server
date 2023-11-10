@@ -2,9 +2,12 @@ import mongoose, { Schema } from 'mongoose';
 
 const CourseSchema = new mongoose.Schema({
   courseId: { type: Schema.Types.ObjectId, ref: 'course' },
-  completed: {
-    type: Boolean,
-    default: false,
+  progress: {
+    type: Number,
+    default: 0,
+  },
+  due: {
+    type: String,
   },
 });
 

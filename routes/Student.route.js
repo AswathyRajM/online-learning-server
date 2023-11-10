@@ -2,20 +2,31 @@ import express from 'express';
 import StudentModel from '../models/Student.model.js';
 const router = express.Router();
 
-// router.post('/course', async (request, response) => {
-//   try {
-//     const courses = new CourseModel(request.body);
-//     await courses.save();
-//     response.send(courses);
-//   } catch (error) {
-//     response.status(500).send(error);
-//   }
-// });
-
-router.get('/all', async (request, response) => {
+router.post('/course', async (request, response) => {
   try {
-    const courses = await StudentModel.find({});
-    response.send(courses);
+    const student = new StudentModel(request.body);
+    await student.save();
+    response.send(student);
+  } catch (error) {
+    response.status(500).send(error);
+  }
+});
+
+router.get('/course/all', async (request, response) => {
+  try {
+    let studentId = '654de006d12fa6fc90e0ab94';
+    const student = await StudentModel.findOne({ _id: studentId })
+      .populate('courses.courseId')
+      .exec();
+
+    const inProgressCourses = student.courses.filter(
+      (course) => course.progress < 100
+    );
+    const completedCourses = student.courses.filter(
+      (course) => course.progress === 100
+    );
+
+    response.json({ inProgressCourses, completedCourses });
   } catch (error) {
     response.status(500).send(error);
   }
@@ -30,22 +41,29 @@ router.get('/all', async (request, response) => {
 // //   }
 // // });
 
-// router.patch('/course/:id', async (request, response) => {
-//   const courseId = request.params.id;
-//   const update = {};
-//   for (const key of Object.keys(request.body)) {
-//     if (req.body[key] !== '') {
-//       update[key] = req.body[key];
-//     }
-//   }
-//   CourseModel.findOneAndUpdate(courseId, { $set: update }, { new: true })
-//     .then(async (course) => {
-//       await course.save();
-//       response.send(course);
-//     })
-//     .catch((err) => {
-//       res.status(500).send(err);
-//     });
-// });
+router.patch('/course', async (request, response) => {
+  const { courseId, progress } = request.body;
+  const studentId = '654de006d12fa6fc90e0ab94';
+
+  const update = {};
+  for (const key of Object.keys(request.body)) {
+    if (request.body[key] !== '') {
+      update[key] = request.body[key];
+    }
+  }
+
+  let condition = { _id: studentId, 'courses.courseId': courseId };
+  let query = { $set: { 'courses.$.progress': progress } };
+
+  StudentModel.findOneAndUpdate(condition, query, { new: true })
+    .then(async (student) => {
+      await student.save();
+      response.send('updated');
+    })
+    .catch((err) => {
+      console.log(err);
+      response.status(500).send(err);
+    });
+});
 
 export default router;
