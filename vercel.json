@@ -8,7 +8,7 @@
   ],
   "routes": [
     {
-      "src": "/api/student/(.*)",
+      "src": "/routes/Student.route.js",
       "dest": "/api/student/$1"
     },
     {
