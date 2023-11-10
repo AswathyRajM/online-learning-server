@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 connectDB();
 
 app.use('/api', router);
-app.get('/', (request, response) => {
+app.get('/', (req, response) => {
   response.send({ message: 'Hello from an Express API!' });
 });
 
