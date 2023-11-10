@@ -6,6 +6,4 @@ const router = Router();
 router.use('/student', StudentRoute);
 router.use('/course', CourseRoute);
 
-export const applyRoutes = (app) => {
-  app.use('/api', router);
-};
+export default router;

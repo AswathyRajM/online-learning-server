@@ -1,7 +1,7 @@
 import express from 'express';
 import connectDB from './config/db.js';
 import dotenv from 'dotenv';
-import { applyRoutes } from './routes/Routes.js';
+import router from './routes/Routes.js';
 import cors from 'cors';
 import { Server } from 'socket.io';
 
@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 
 connectDB();
 
-applyRoutes(app);
+app.use('/api', router);
 app.get('/', (request, response) => {
   response.send({ message: 'Hello from an Express API!' });
 });
